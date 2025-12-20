@@ -1,0 +1,57 @@
+package ru.netology.banklogin.test;
+
+import org.junit.jupiter.api.*;
+import ru.netology.banklogin.data.DataHelper;
+import ru.netology.banklogin.data.SQLHelper;
+import ru.netology.banklogin.page.LoginPage;
+
+import static com.codeborne.selenide.Selenide.open;
+import static ru.netology.banklogin.data.SQLHelper.cleanAuthCodes;
+import static ru.netology.banklogin.data.SQLHelper.cleanDatabase;
+
+public class BankLoginTest {
+    LoginPage loginPage;
+
+    @AfterAll
+    static void tearDownAll() {
+        cleanDatabase();
+    }
+
+    @BeforeEach
+    void setup() {
+        loginPage = open("http://localhost:9999", LoginPage.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        cleanAuthCodes();
+    }
+
+    @Test
+    @DisplayName("Should successfully login to dashboard with exist login and password from sut data")
+    void shouldLoginSuccessfully() {
+        var authInfo = DataHelper.getAuthInfoWithTestData();
+        var verificationPage = loginPage.validLogin(authInfo);
+        var verificationCode = SQLHelper.getVerificatioCode();
+        verificationPage.validVerify(verificationCode.getCode());
+    }
+
+    @Test
+    @DisplayName("Should get error notification if user is not exist in base")
+    void shouldGetErrorIfUserNotExist() {
+        var authInfo = DataHelper.generateRandomUser();
+        loginPage.login(authInfo);
+        loginPage.verifyErrorNotification("Ошибка! Неверно указан логин или пароль");
+    }
+
+    @Test
+    @DisplayName("Should get error notification if login with exist in base and active user and random verification code")
+    void shouldGetErrorIfVerificationCodeInvalid() {
+        var authInfo = DataHelper.getAuthInfoWithTestData();
+        var verificationPage = loginPage.validLogin(authInfo);
+        var randomVerificationCode = DataHelper.generateRandomVerificationCode().getCode();
+        verificationPage.verify(randomVerificationCode);
+        verificationPage.verifyErrorNotification("Ошибка! Неверно указан код! Попробуйте ещё раз.");
+    }
+}
+
