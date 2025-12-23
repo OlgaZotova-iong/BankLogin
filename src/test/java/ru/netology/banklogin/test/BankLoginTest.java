@@ -32,7 +32,7 @@ public class BankLoginTest {
     void shouldLoginSuccessfully() {
         var authInfo = DataHelper.getAuthInfoWithTestData();
         var verificationPage = loginPage.validLogin(authInfo);
-        var verificationCode = SQLHelper.getVerificatioCode();
+        var verificationCode = SQLHelper.getVerificationCode();
         verificationPage.validVerify(verificationCode.getCode());
     }
 
